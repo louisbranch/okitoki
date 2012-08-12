@@ -1,4 +1,4 @@
 okitoki
 =======
 
-Prototype for just in the chat rooms. Pronounce as Walkie-talkie.
+Prototype for just in time chat rooms. Pronounce as _Walkie-talkie_.
