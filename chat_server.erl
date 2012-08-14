@@ -2,26 +2,34 @@
 -export([start/0]).
 -export([init/0]).
 
+% Move start process to a chat supervisor
+% give away the table to server and set itself
+% as the tabler heir
+% In the case of crash, start again?
 start() ->
   Server = spawn(chat_server, init, []),
-  Server ! create_rooms_db,
-  register(chat_server, Server).
+  register(chat_server, Server),
+  ets:new(rooms, [set, named_table]),
+  ets:give_away(rooms, Server, []).
 
 init() ->
   receive
-    create_rooms_db ->
-      ets:new(rooms, [set, named_table]);
     {open_room, Room} ->
-      open_room(Room);
+      open_room(Room),
+      init();
     {close_room, Room} ->
-      close_room(Room);
+      close_room(Room),
+      init();
     {send_to_room, Room, Params} ->
-      send_to_room(Room, Params);
+      send_to_room(Room, Params),
+      init();
+    close ->
+      ok;
     _Else ->
       %save message to log file
-      io:format("~p~n", [_Else])
-  end,
-  init().
+      io:format("~p~n", [_Else]),
+      init()
+  end.
 
 open_room(Room) ->
   Result = ets:lookup(rooms, Room),
@@ -39,7 +47,7 @@ open_room(Room) ->
 close_room(Room) ->
   Result = ets:lookup(rooms, Room),
   case Result of
-    [{_, RoomPid}] ->
+    [{Room, RoomPid}] ->
       RoomPid ! close,
       ets:delete(rooms, Room),
       io:format("~s room was closed~n", [Room]),
@@ -52,7 +60,7 @@ close_room(Room) ->
 send_to_room(Room, Params) ->
   Result = ets:lookup(rooms, Room),
   case Result of
-    [{_, RoomPid}] ->
+    [{Room, RoomPid}] ->
       RoomPid ! Params,
       ok;
     [] ->
