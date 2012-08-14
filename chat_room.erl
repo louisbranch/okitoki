@@ -1,36 +1,38 @@
 %TODO create database
 -module(chat_room).
--export([router/0]).
+-export([start/1,request_messages/3]).
+-export([router/1]).
+%record(okitoki_users, {room, username}).
+%record(okitoki_messages, {room, username, message, timestamp}).
 
-router() ->
+start(Room) ->
+  spawn(chat_room, router, [Room]).
+
+router(Room) ->
   receive
     {send_message, Username, Message} ->
       send_message(Username, Message),
-      router();
-    {request_messages, TimeStamp} ->
-      request_messages(TimeStamp),
-      router();
+      router(Room);
     {join_room, Username} ->
       join_room(Username),
-      router();
+      router(Room);
     {leave_room, Username} ->
       leave_room(Username),
-      router();
+      router(Room);
     close ->
       ok;
     _Else ->
       error,
-      router()
+      router(Room)
   end.
 
 send_message(Username, Message) ->
   %TODO save user, message and timestamp
   io:format("~s says: ~p~n", [Username, Message]).
 
-request_messages(TimeStamp) ->
+request_messages(Room, Username, TimeStamp) ->
   %TODO request messages after given timestamp
-  %or all with none is given
-  TimeStamp.
+  io:format("~s ~s ~p~n", [Room, Username, TimeStamp]).
 
 join_room(Username) ->
   %TODO add username to database
