@@ -14,7 +14,11 @@ init(Rooms) ->
     {close_room, RoomName} ->
       NewRooms = close_room(RoomName, Rooms),
       init(NewRooms);
+    {send_to_room, RoomName, Params} ->
+      send_to_room(RoomName, Rooms, Params),
+      init(Rooms);
     _Else ->
+      %save message to log file
       init(Rooms)
   end.
 
@@ -43,3 +47,13 @@ close_room(RoomName, Rooms) ->
       Rooms
     end.
 
+send_to_room(RoomName, Rooms, Params) ->
+  Result = dict:find(RoomName, Rooms),
+  case Result of
+    {ok, [RoomPid|_]} ->
+      RoomPid ! Params,
+      ok;
+    error ->
+      io:format("~s room doesn't exist~n", [RoomName]),
+      error
+    end.

@@ -23,9 +23,9 @@ router() ->
       router()
   end.
 
-send_message(_, Message) ->
+send_message(Username, Message) ->
   %TODO save user, message and timestamp
-  Message.
+  io:format("~s says: ~p~n", [Username, Message]).
 
 request_messages(TimeStamp) ->
   %TODO request messages after given timestamp
@@ -34,8 +34,8 @@ request_messages(TimeStamp) ->
 
 join_room(Username) ->
   %TODO add username to database
-  Username.
+  io:format("~s has joined~n", [Username]).
 
 leave_room(Username) ->
   %TODO remove username from database
-  Username.
+  io:format("~s has left~n", [Username]).
