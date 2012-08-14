@@ -1,59 +1,61 @@
 -module(chat_server).
 -export([start/0]).
--export([init/1]).
+-export([init/0]).
 
 start() ->
-  Rooms = dict:new(),
-  spawn(chat_server, init, [Rooms]).
+  Server = spawn(chat_server, init, []),
+  Server ! create_rooms_db,
+  register(chat_server, Server).
 
-init(Rooms) ->
+init() ->
   receive
+    create_rooms_db ->
+      ets:new(rooms, [set, named_table]);
     {open_room, RoomName} ->
-      NewRooms = open_room(RoomName, Rooms),
-      init(NewRooms);
+      open_room(RoomName);
     {close_room, RoomName} ->
-      NewRooms = close_room(RoomName, Rooms),
-      init(NewRooms);
+      close_room(RoomName);
     {send_to_room, RoomName, Params} ->
-      send_to_room(RoomName, Rooms, Params),
-      init(Rooms);
+      send_to_room(RoomName, Params);
     _Else ->
       %save message to log file
-      init(Rooms)
-  end.
+      io:format("~p~n", [_Else])
+  end,
+  init().
 
-open_room(RoomName, Rooms) ->
-  ExistingRoom = dict:is_key(RoomName, Rooms),
-  case ExistingRoom of
-    false ->
-      Pid = spawn(chat_room, router, []),
-      io:format("~s room was opened~n", [RoomName]),
-      dict:append(RoomName, Pid, Rooms);
-    true ->
+open_room(RoomName) ->
+  Result = ets:lookup(rooms, RoomName),
+  case Result of
+    [_] ->
       io:format("~s room already exist~n", [RoomName]),
-      Rooms
+      error;
+    [] ->
+      Pid = chat_room:start(),
+      ets:insert(rooms, {RoomName, Pid}),
+      io:format("~s room was opened~n", [RoomName]),
+      ok
     end.
 
-close_room(RoomName, Rooms) ->
-  Result = dict:find(RoomName, Rooms),
+close_room(RoomName) ->
+  Result = ets:lookup(rooms, RoomName),
   case Result of
-    {ok, [RoomPid|_]} ->
+    [{_, RoomPid}] ->
       RoomPid ! close,
-      NewRooms = dict:erase(RoomName, Rooms),
+      ets:delete(rooms, RoomName),
       io:format("~s room was closed~n", [RoomName]),
-      NewRooms;
-    error ->
+      ok;
+    [] ->
       io:format("~s room doesn't exist~n", [RoomName]),
-      Rooms
+      error
     end.
 
-send_to_room(RoomName, Rooms, Params) ->
-  Result = dict:find(RoomName, Rooms),
+send_to_room(RoomName, Params) ->
+  Result = ets:lookup(rooms, RoomName),
   case Result of
-    {ok, [RoomPid|_]} ->
+    [{_, RoomPid}] ->
       RoomPid ! Params,
       ok;
-    error ->
+    [] ->
       io:format("~s room doesn't exist~n", [RoomName]),
       error
     end.
