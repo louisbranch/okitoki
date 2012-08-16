@@ -9,31 +9,26 @@ Prototype for just in time chat rooms. Pronounced as _Walkie-talkie_.
 
     POST /rooms/:room
 
-**Response**
-
+    //Response
     Status: 201 Created
 
 ### Remove room
 
     DELETE /rooms/:room
 
-**Response**
-
+    //Response
     Status: 200 OK
 
 ### Join room
 
     POST /rooms/:room/:username
 
-**Response**
-
+    //Response
     Status: 200 OK
 
 ### Leave room
 
     DELETE /rooms/:room/:username
 
-**Response**
-
+    //Response
     Status: 200 OK
-
