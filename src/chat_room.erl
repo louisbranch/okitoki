@@ -1,12 +1,15 @@
-%TODO create database
 -module(chat_room).
--export([start/1,request_messages/3]).
+-export([start/1,request_messages/1]).
 -export([router/1]).
-%record(okitoki_users, {room, username}).
-%record(okitoki_messages, {room, username, message, timestamp}).
 
+% Starts a new chat room process
 start(Room) ->
   spawn(chat_room, router, [Room]).
+
+% Should this function be here?
+request_messages(Room) ->
+  %TODO request all room messages
+  io:format("~s ~n", [Room]).
 
 router(Room) ->
   receive
@@ -29,10 +32,6 @@ router(Room) ->
 send_message(Username, Message) ->
   %TODO save user, message and timestamp
   io:format("~s says: ~p~n", [Username, Message]).
-
-request_messages(Room, Username, TimeStamp) ->
-  %TODO request messages after given timestamp
-  io:format("~s ~s ~p~n", [Room, Username, TimeStamp]).
 
 join_room(Username) ->
   %TODO add username to database

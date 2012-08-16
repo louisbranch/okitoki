@@ -7,10 +7,10 @@
 % as the tabler heir
 % In the case of crash, start again?
 start() ->
-  Server = spawn(chat_server, init, []),
-  register(chat_server, Server),
+  Pid = spawn(chat_server, init, []),
+  register(chat_server, Pid),
   ets:new(rooms, [set, named_table]),
-  ets:give_away(rooms, Server, []).
+  ets:give_away(rooms, Pid, []).
 
 init() ->
   receive
