@@ -1,69 +1,47 @@
 -module(chat_server).
--export([start/0]).
+-export([start/0,stop/0]).
 -export([init/0]).
 
-% Move start process to a chat supervisor
-% give away the table to server and set itself
-% as the tabler heir
-% In the case of crash, start again?
 start() ->
   Pid = spawn(chat_server, init, []),
-  register(chat_server, Pid),
-  ets:new(rooms, [set, named_table]),
-  ets:give_away(rooms, Pid, []).
+  register(chat_server, Pid).
+
+stop() ->
+  exit(whereis(chat_server), normal),
+  unregister(chat_server).
 
 init() ->
   receive
     {open_room, Room} ->
-      open_room(Room),
-      init();
+      open_room(Room);
     {close_room, Room} ->
-      close_room(Room),
-      init();
-    {send_to_room, Room, Params} ->
-      send_to_room(Room, Params),
-      init();
-    close ->
-      ok;
+      close_room(Room);
+    {'DOWN', Ref, process, Pid, Reason} ->
+      demonitor(Ref),
+      io:format("Process ~p has exited: ~p~n", [Pid,Reason]);
     _Else ->
       %save message to log file
-      io:format("~p~n", [_Else]),
-      init()
-  end.
+      io:format("~p~n", [_Else])
+  end,
+  init().
 
 open_room(Room) ->
-  Result = ets:lookup(rooms, Room),
-  case Result of
-    [_] ->
-      io:format("~s room already exist~n", [Room]),
-      error;
-    [] ->
+  case whereis(Room) of
+    undefined ->
       Pid = chat_room:start(Room),
-      ets:insert(rooms, {Room, Pid}),
+      monitor(process, Pid),
       io:format("~s room was opened~n", [Room]),
-      ok
+      ok;
+    _Pid ->
+      io:format("~s room already exist~n", [Room]),
+      error
     end.
 
 close_room(Room) ->
-  Result = ets:lookup(rooms, Room),
-  case Result of
-    [{Room, RoomPid}] ->
-      RoomPid ! close,
-      ets:delete(rooms, Room),
-      io:format("~s room was closed~n", [Room]),
-      ok;
-    [] ->
+  case whereis(Room) of
+    undefined ->
       io:format("~s room doesn't exist~n", [Room]),
-      error
-    end.
-
-send_to_room(Room, Params) ->
-  Result = ets:lookup(rooms, Room),
-  case Result of
-    [{Room, RoomPid}] ->
-      RoomPid ! Params,
-      ok;
-    [] ->
-      io:format("~s room doesn't exist~n", [Room]),
-      error
+      error;
+    Pid ->
+      Pid ! close
     end.

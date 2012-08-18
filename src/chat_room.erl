@@ -1,5 +1,5 @@
 -module(chat_room).
--export([start/1,request_messages/1]).
+-export([start/1]).
 -export([router/1]).
 
 % Starts a new chat room process
@@ -8,23 +8,19 @@ start(Room) ->
   Pid = spawn(chat_room, router, [Room]),
   ets:new(Room, [bag, named_table]),
   ets:give_away(Room, Pid, []),
+  register(Room, Pid),
   Pid.
-
-% Should this function be here?
-request_messages(Room) ->
-  %TODO request all room messages
-  io:format("~s ~n", [Room]).
 
 router(Room) ->
   receive
-    {send_message, Username, Message} ->
-      send_message(Room, Username, Message),
+    {send_message, SenderPid, Username, Message} ->
+      send_message(SenderPid, Room, Username, Message),
       router(Room);
-    {join_room, Username} ->
-      join_room(Room, Username),
+    {join_room, UserPid} ->
+      ets:insert(Room, {UserPid}),
       router(Room);
-    {leave_room, Username} ->
-      leave_room(Room, Username),
+    {leave_room, UserPid} ->
+      ets:delete(Room, UserPid),
       router(Room);
     close ->
       ok;
@@ -33,11 +29,14 @@ router(Room) ->
       router(Room)
   end.
 
-send_message(Room, Username, Message) ->
-  chat_db:create_message(Room, Username, Message).
+send_message(SenderPid, Room, Username, Message) ->
+  MsgParams = {chat_message, Room, Username, Message},
+  ets:foldl(
+    fun({TargetPid}, _Acc) ->
+        broadcast(TargetPid, SenderPid, MsgParams) end,
+    notused, Room).
 
-join_room(Room, Username) ->
-  ets:insert(Room, {Username}).
-
-leave_room(Room, Username) ->
-  ets:delete(Room, Username).
+broadcast(TargetPid, SenderPid, MsgParams)
+  when TargetPid =/= SenderPid ->
+  TargetPid ! MsgParams;
+broadcast(_TargetPid, _SenderPid, _MsgParams) -> ok.
