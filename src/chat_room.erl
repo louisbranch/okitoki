@@ -3,8 +3,12 @@
 -export([router/1]).
 
 % Starts a new chat room process
+% and term storage for usernames
 start(Room) ->
-  spawn(chat_room, router, [Room]).
+  Pid = spawn(chat_room, router, [Room]),
+  ets:new(Room, [bag, named_table]),
+  ets:give_away(Room, Pid, []),
+  Pid.
 
 % Should this function be here?
 request_messages(Room) ->
@@ -14,13 +18,13 @@ request_messages(Room) ->
 router(Room) ->
   receive
     {send_message, Username, Message} ->
-      send_message(Username, Message),
+      send_message(Room, Username, Message),
       router(Room);
     {join_room, Username} ->
-      join_room(Username),
+      join_room(Room, Username),
       router(Room);
     {leave_room, Username} ->
-      leave_room(Username),
+      leave_room(Room, Username),
       router(Room);
     close ->
       ok;
@@ -29,14 +33,11 @@ router(Room) ->
       router(Room)
   end.
 
-send_message(Username, Message) ->
-  %TODO save user, message and timestamp
-  io:format("~s says: ~p~n", [Username, Message]).
+send_message(Room, Username, Message) ->
+  chat_db:create_message(Room, Username, Message).
 
-join_room(Username) ->
-  %TODO add username to database
-  io:format("~s has joined~n", [Username]).
+join_room(Room, Username) ->
+  ets:insert(Room, {Username}).
 
-leave_room(Username) ->
-  %TODO remove username from database
-  io:format("~s has left~n", [Username]).
+leave_room(Room, Username) ->
+  ets:delete(Room, Username).

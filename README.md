@@ -32,3 +32,8 @@ Prototype for just in time chat rooms. Pronounced as _Walkie-talkie_.
 
     // Response
     Status: 200 OK
+
+## Todo
+
+* Build the REST interface
+* Version the API

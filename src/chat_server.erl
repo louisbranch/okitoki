@@ -38,7 +38,7 @@ open_room(Room) ->
       io:format("~s room already exist~n", [Room]),
       error;
     [] ->
-      Pid = chat_room:start(),
+      Pid = chat_room:start(Room),
       ets:insert(rooms, {Room, Pid}),
       io:format("~s room was opened~n", [Room]),
       ok
