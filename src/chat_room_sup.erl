@@ -1,16 +1,16 @@
--module(chat_server).
+-module(chat_room_sup).
 -export([start/0,stop/0]).
--export([init/0]).
+-export([loop/0]).
 
 start() ->
-  Pid = spawn(chat_server, init, []),
-  register(chat_server, Pid).
+  Pid = spawn(chat_room_sup, loop, []),
+  register(chat_room_sup, Pid).
 
 stop() ->
-  exit(whereis(chat_server), normal),
-  unregister(chat_server).
+  exit(whereis(chat_room_sup), normal),
+  unregister(chat_room_sup).
 
-init() ->
+loop() ->
   receive
     {open_room, Room} ->
       open_room(Room);
@@ -23,7 +23,7 @@ init() ->
       %save message to log file
       io:format("~p~n", [_Else])
   end,
-  init().
+  loop().
 
 open_room(Room) ->
   case whereis(Room) of
