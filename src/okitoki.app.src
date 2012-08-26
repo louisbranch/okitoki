@@ -1,0 +1,12 @@
+{application, okitoki,
+ [
+  {description, "Just-in-time chat rooms"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { okitoki_app, []}},
+  {env, []}
+ ]}.

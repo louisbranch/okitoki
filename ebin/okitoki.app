@@ -1,0 +1,9 @@
+{application,okitoki,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {mod,{okitoki_app,[]}},
+              {env,[]},
+              {modules,[message_db,okitoki_app,okitoki_sup,room,room_sup,usr,
+                        usr_namer,usr_sup]}]}.
