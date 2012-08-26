@@ -1,14 +1,14 @@
--module(user_sup).
+-module(usr_sup).
 -export([start/0,stop/0]).
 -export([loop/0]).
 
 start() ->
-  Pid = spawn(user_sup, loop, []),
-  register(user_sup, Pid).
+  Pid = spawn(usr_sup, loop, []),
+  register(usr_sup, Pid).
 
 stop() ->
-  exit(whereis(user_sup), normal),
-  unregister(user_sup).
+  exit(whereis(usr_sup), normal),
+  unregister(usr_sup).
 
 loop() ->
   receive
@@ -20,7 +20,7 @@ loop() ->
       SenderPid ! {user_created, UserPid, UsernameStatus};
     {'DOWN', Ref, process, Pid, Reason} ->
       demonitor(Ref),
-      user_namer:delete_username(Pid),
+      usr_namer:delete_username(Pid),
       io:format("Process ~p has exited: ~p~n", [Pid,Reason]);
     _Else ->
       io:format("Error: ~p~n", [_Else])
@@ -28,7 +28,7 @@ loop() ->
   loop().
 
 new() ->
-  Pid = user:start(anonymous),
+  Pid = usr:start(anonymous),
   monitor(process, Pid),
   Pid.
 

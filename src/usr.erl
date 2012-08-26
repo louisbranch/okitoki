@@ -1,9 +1,9 @@
--module(user).
+-module(usr).
 -export([start/1]).
 -export([loop/1]).
 
 start(Username) ->
-  spawn(user, loop, [Username]).
+  spawn(usr, loop, [Username]).
 
 loop(Username) ->
   receive
@@ -16,7 +16,7 @@ loop(Username) ->
       ok,
       loop(Username);
     {change_username, NewUsername} ->
-      user_sup:change_username(Username, NewUsername),
+      usr_sup:change_username(Username, NewUsername),
       loop(Username);
     stop ->
       ok;

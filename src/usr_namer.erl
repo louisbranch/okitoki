@@ -1,15 +1,15 @@
--module(user_namer).
+-module(usr_namer).
 -export([start/0,stop/0]).
 -export([loop/0]).
 
 start() ->
-  Pid = spawn(user_namer, loop, []),
+  Pid = spawn(usr_namer, loop, []),
   ets:new(usernames, [set, named_table, public]),
-  register(user_namer, Pid).
+  register(usr_namer, Pid).
 
 stop() ->
-  exit(whereis(user_namer), normal),
-  unregister(user_namer).
+  exit(whereis(usr_namer), normal),
+  unregister(usr_namer).
 
 loop() ->
   receive
