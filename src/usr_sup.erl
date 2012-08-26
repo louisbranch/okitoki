@@ -20,7 +20,7 @@ loop() ->
       SenderPid ! {user_created, UserPid, UsernameStatus};
     {'DOWN', Ref, process, Pid, Reason} ->
       demonitor(Ref),
-      usr_namer:delete_username(Pid),
+      usr_namer ! {delete_username, Pid},
       io:format("Process ~p has exited: ~p~n", [Pid,Reason]);
     _Else ->
       io:format("Error: ~p~n", [_Else])
@@ -34,7 +34,7 @@ new() ->
 
 new(Username) ->
   Pid = new(),
-  user_namer ! {insert_username, self(), Username, Pid},
+  usr_namer ! {insert_username, self(), Username, Pid},
   receive
     ok ->
       Pid ! {set_username, Username},
