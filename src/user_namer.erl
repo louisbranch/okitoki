@@ -1,15 +1,15 @@
--module(chat_user_namer).
+-module(user_namer).
 -export([start/0,stop/0]).
 -export([loop/0]).
 
 start() ->
-  Pid = spawn(chat_user_namer, loop, []),
+  Pid = spawn(user_namer, loop, []),
   ets:new(usernames, [set, named_table, public]),
-  register(chat_user_namer, Pid).
+  register(user_namer, Pid).
 
 stop() ->
-  exit(whereis(chat_user_namer), normal),
-  unregister(chat_user_namer).
+  exit(whereis(user_namer), normal),
+  unregister(user_namer).
 
 loop() ->
   receive

@@ -1,14 +1,14 @@
--module(chat_room_sup).
+-module(room_sup).
 -export([start/0,stop/0]).
 -export([loop/0]).
 
 start() ->
-  Pid = spawn(chat_room_sup, loop, []),
-  register(chat_room_sup, Pid).
+  Pid = spawn(room_sup, loop, []),
+  register(room_sup, Pid).
 
 stop() ->
-  exit(whereis(chat_room_sup), normal),
-  unregister(chat_room_sup).
+  exit(whereis(room_sup), normal),
+  unregister(room_sup).
 
 loop() ->
   receive
@@ -28,7 +28,7 @@ loop() ->
 open_room(Room) ->
   case whereis(Room) of
     undefined ->
-      Pid = chat_room:start(Room),
+      Pid = room:start(Room),
       monitor(process, Pid),
       io:format("~s room was opened~n", [Room]),
       ok;

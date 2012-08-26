@@ -1,9 +1,9 @@
--module(chat_user).
+-module(user).
 -export([start/1]).
 -export([loop/1]).
 
 start(Username) ->
-  spawn(chat_user, loop, [Username]).
+  spawn(user, loop, [Username]).
 
 loop(Username) ->
   receive
@@ -16,7 +16,7 @@ loop(Username) ->
       ok,
       loop(Username);
     {change_username, NewUsername} ->
-      chat_user_sup:change_username(Username, NewUsername),
+      user_sup:change_username(Username, NewUsername),
       loop(Username);
     stop ->
       ok;

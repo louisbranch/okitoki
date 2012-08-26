@@ -1,4 +1,4 @@
--module(chat_db).
+-module(message_db).
 -export([start/0]).
 -record(okitoki_message, {room, username, message, timestamp}).
 

@@ -1,11 +1,11 @@
--module(chat_room).
+-module(room).
 -export([start/1]).
 -export([router/1]).
 
 % Starts a new chat room process
 % and term storage for usernames
 start(Room) ->
-  Pid = spawn(chat_room, router, [Room]),
+  Pid = spawn(room, router, [Room]),
   ets:new(Room, [bag, named_table]),
   ets:give_away(Room, Pid, []),
   register(Room, Pid),
