@@ -25,6 +25,7 @@ router(Room) ->
     close ->
       ok;
     _Else ->
+      %% log error
       error,
       router(Room)
   end.

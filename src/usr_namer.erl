@@ -16,7 +16,9 @@ loop() ->
     {insert_username, SenderPid, Username, UserPid} ->
       SenderPid ! insert_username(Username, UserPid);
     {delete_username, Pid} ->
-      delete_username(Pid)
+      delete_username(Pid);
+    {get_username, SenderPid, Pid} ->
+      get_username(SenderPid, Pid)
   end,
   loop().
 
@@ -32,3 +34,12 @@ insert_username(Username, Pid) ->
 
 delete_username(Pid) ->
   ets:match_delete(usernames, {'_', Pid}).
+
+get_username(SenderPid, Pid) ->
+  Result = ets:match_object(usernames, {'$1', Pid}),
+  case Result of
+    [{Username, Pid}] ->
+      SenderPid ! {username, Username};
+    [] ->
+      error
+  end.

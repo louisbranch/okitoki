@@ -10,7 +10,10 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    okitoki_sup:start_link().
+  okitoki_sup:start_link(),
+  room_sup:start(),
+  usr_sup:start(),
+  usr_namer:start().
 
 stop(_State) ->
     ok.

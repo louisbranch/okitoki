@@ -12,10 +12,10 @@ stop() ->
 
 loop() ->
   receive
-    {open_room, Room} ->
-      open_room(Room);
-    {close_room, Room} ->
-      close_room(Room);
+    {open_room, Pid, Room} ->
+      Pid ! open_room(Room);
+    {close_room, Pid, Room} ->
+      Pid ! close_room(Room);
     {'DOWN', Ref, process, Pid, Reason} ->
       demonitor(Ref),
       io:format("Process ~p has exited: ~p~n", [Pid,Reason]);
@@ -30,17 +30,14 @@ open_room(Room) ->
     undefined ->
       Pid = room:start(Room),
       monitor(process, Pid),
-      io:format("~s room was opened~n", [Room]),
       ok;
     _Pid ->
-      io:format("~s room already exist~n", [Room]),
       error
     end.
 
 close_room(Room) ->
   case whereis(Room) of
     undefined ->
-      io:format("~s room doesn't exist~n", [Room]),
       error;
     Pid ->
       Pid ! close

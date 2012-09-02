@@ -2,7 +2,7 @@
  [
   {description, "Just-in-time chat rooms"},
   {vsn, "1"},
-  {registered, []},
+  {registered, [room_sup, usr_sup, usr_namer]},
   {applications, [
                   kernel,
                   stdlib
