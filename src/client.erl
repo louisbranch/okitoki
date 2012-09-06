@@ -10,13 +10,17 @@ close_room(Name) ->
 new_user() ->
   usr_sup ! {new_user, self()},
   receive
-    {user_created, Pid} -> Pid
+    {user_created, ok, Pid} ->
+      {ok, Pid}
   end.
 
 new_user(Name) ->
   usr_sup ! {new_user, self(), Name},
   receive
-    {user_created, Pid} -> Pid
+    {user_created, ok, Pid} ->
+      {ok, Pid};
+    {user_created, error, Pid} ->
+      {"username already in use", Pid}
   end.
 
 join_room(UserPid, Room) ->
@@ -24,13 +28,13 @@ join_room(UserPid, Room) ->
     undefined ->
       error;
     _Pid ->
-      Room ! {join_room, self(), UserPid}
+      Room ! {join_room, UserPid}
   end.
 
 leave_room(UserPid, Room) ->
   Room ! {leave_room, UserPid}.
 
 send_message(UserPid, Room, Message) ->
-  %% search for username
+  %% TODO search for username
   Username = name,
-  Room ! {send_message, self(), Username, Message}.
+  Room ! {send_message, UserPid, Username, Message}.

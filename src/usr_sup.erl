@@ -16,8 +16,8 @@ loop() ->
       UserPid = new(),
       SenderPid ! {user_created, UserPid};
     {new_user, SenderPid, Username} ->
-      {UserPid, UsernameStatus} = new(Username),
-      SenderPid ! {user_created, UserPid, UsernameStatus};
+      {UsernameStatus, UserPid} = new(Username),
+      SenderPid ! {user_created, UsernameStatus, UserPid};
     {'DOWN', Ref, process, Pid, Reason} ->
       demonitor(Ref),
       usr_namer ! {delete_username, Pid},
@@ -38,7 +38,7 @@ new(Username) ->
   receive
     ok ->
       Pid ! {set_username, Username},
-      {Pid, ok};
+      {ok, Pid};
     error ->
-      {Pid, error}
+      {error, Pid}
   end.
